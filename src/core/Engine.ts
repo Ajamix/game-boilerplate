@@ -56,13 +56,22 @@ export class Engine {
             if (this.activeScene) {
                 this.activeScene.update(delta, elapsed);
                 
-                // Update player system, passing the cube's body
+                // Get player components
                 const playerBody = this.activeScene.cubeBody; 
-                if (playerBody) {
-                    this._playerSystem.update(playerBody, delta);
+                const playerMesh = this.activeScene.cube;
+                
+                if (playerBody && playerMesh) {
+                    // Update camera system first
+                    this._cameraSystem.update(playerBody, playerMesh, delta);
                     
-                    // Update camera system with player information
-                    this._cameraSystem.update(playerBody, this.activeScene.cube, delta);
+                    // Set camera vectors for the player system
+                    this._playerSystem.setCameraVectors(
+                        this._cameraSystem.getForwardVector(),
+                        this._cameraSystem.getRightVector()
+                    );
+                    
+                    // Then update player system
+                    this._playerSystem.update(playerBody, playerMesh, delta);
                 }
             }
 

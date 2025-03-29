@@ -12,9 +12,18 @@ export class PlayerSystem {
     public jumpForce: number = 7.0; // Jump impulse strength
     public maxSpeed: number = 10.0; // Maximum horizontal velocity
     public damping: number = 0.90; // Damping factor (0-1, closer to 0 = stronger damping)
+    
+    // Movement vectors
     private movementDirection = new THREE.Vector3();
     private tempVec = new THREE.Vector3();
-    private cameraDirection = new THREE.Vector3();
+    
+    // Camera-provided direction vectors
+    private cameraForward = new THREE.Vector3(0, 0, -1);
+    private cameraRight = new THREE.Vector3(1, 0, 0);
+    
+    // Player direction vectors
+    private playerForward = new THREE.Vector3(0, 0, -1);
+    private playerRight = new THREE.Vector3(1, 0, 0);
     
     // Constants for ground check
     private readonly PLAYER_HEIGHT = 1.8;
@@ -23,6 +32,17 @@ export class PlayerSystem {
 
     constructor() {
         console.log('PlayerSystem initialized.');
+    }
+    
+    /**
+     * Sets the camera direction vectors for camera-relative movement.
+     * This should be called after CameraSystem.update() but before this.update().
+     * @param forward The camera's forward vector
+     * @param right The camera's right vector
+     */
+    public setCameraVectors(forward: THREE.Vector3, right: THREE.Vector3): void {
+        this.cameraForward.copy(forward);
+        this.cameraRight.copy(right);
     }
     
     /**
@@ -56,70 +76,85 @@ export class PlayerSystem {
     /**
      * Updates the player's rigid body based on current input.
      * @param playerBody The RAPIER.RigidBody of the player.
+     * @param playerMesh The mesh representing the player.
      * @param delta Time since last frame (optional, for frame-rate independent force).
      */
-    public update(playerBody: RAPIER.RigidBody, delta: number): void {
+    public update(playerBody: RAPIER.RigidBody, playerMesh: THREE.Object3D, delta: number): void {
         if (!playerBody) return; // Don't run if body doesn't exist
 
         const actions = useInputStore.getState().actions;
         const currentVelocity = playerBody.linvel();
         const cameraState = useCameraStore.getState();
-        
-        // Get camera direction for movement relative to view
-        const camera = cameraState.target?.parent as THREE.Camera;
+        const cameraMode = cameraState.mode;
         
         // --- Calculate Movement Direction --- 
         this.movementDirection.set(0, 0, 0);
         
         // Build movement direction based on input
         if (actions[InputAction.Forward]) {
+            // Forward is -Z in Three.js space
             this.movementDirection.z -= 1;
         }
         if (actions[InputAction.Backward]) {
+            // Backward is +Z in Three.js space
             this.movementDirection.z += 1;
         }
         if (actions[InputAction.Left]) {
+            // Left is -X in Three.js space 
             this.movementDirection.x -= 1;
         }
         if (actions[InputAction.Right]) {
+            // Right is +X in Three.js space
             this.movementDirection.x += 1;
         }
         
-        // If we have camera-relative movement, convert local input to world space direction
-        if (camera && this.movementDirection.lengthSq() > 0) {
-            // Get camera forward direction (ignoring Y component)
-            camera.getWorldDirection(this.cameraDirection);
-            this.cameraDirection.y = 0;
-            this.cameraDirection.normalize();
+        // If we have movement input, process it based on camera mode
+        if (this.movementDirection.lengthSq() > 0) {
+            // Normalize input to prevent faster diagonal movement
+            this.movementDirection.normalize();
             
-            // Get camera right direction
-            const cameraRight = new THREE.Vector3(1, 0, 0);
-            cameraRight.applyQuaternion(camera.quaternion);
-            cameraRight.y = 0;
-            cameraRight.normalize();
-            
-            // Combine directions
-            this.tempVec.set(0, 0, 0);
-            // Forward/backward uses camera's forward direction
-            this.tempVec.addScaledVector(this.cameraDirection, -this.movementDirection.z);
-            // Left/right uses camera's right direction
-            this.tempVec.addScaledVector(cameraRight, this.movementDirection.x);
-            
-            // Normalize if necessary
-            if (this.tempVec.lengthSq() > 0) {
-                this.tempVec.normalize();
+            // Calculate player's forward and right directions from mesh quaternion
+            if (cameraMode === CameraMode.FirstPerson) {
+                // In first-person mode, we use the player's orientation
+                // Get the player's current forward and right directions
+                this.playerForward.set(0, 0, -1);
+                this.playerForward.applyQuaternion(playerMesh.quaternion);
+                this.playerForward.y = 0; // Keep movement horizontal
+                this.playerForward.normalize();
+                
+                this.playerRight.set(1, 0, 0);
+                this.playerRight.applyQuaternion(playerMesh.quaternion);
+                this.playerRight.y = 0;
+                this.playerRight.normalize();
+                
+                this.tempVec.set(0, 0, 0);
+                
+                // Forward/backward uses player's forward direction
+                this.tempVec.addScaledVector(this.playerForward, -this.movementDirection.z);
+                
+                // Left/right uses player's right direction
+                this.tempVec.addScaledVector(this.playerRight, this.movementDirection.x);
+            } else {
+                // In other modes (ThirdPerson, Orbital), movement is camera-relative
+                this.tempVec.set(0, 0, 0);
+                
+                // Forward/backward uses camera's forward direction
+                this.tempVec.addScaledVector(this.cameraForward, -this.movementDirection.z);
+                
+                // Left/right uses camera's right direction
+                this.tempVec.addScaledVector(this.cameraRight, this.movementDirection.x);
             }
             
-            // Replace movement direction with camera-oriented direction
-            this.movementDirection.copy(this.tempVec);
-        } else if (this.movementDirection.lengthSq() > 0) {
-            // Normalize direction vector if needed (prevents faster diagonal movement)
-            this.movementDirection.normalize();
+            // Normalize and apply the final movement direction
+            if (this.tempVec.lengthSq() > 0) {
+                this.tempVec.normalize();
+                this.movementDirection.copy(this.tempVec);
+            }
         }
 
         // --- Apply Movement Force/Impulse --- 
-        // Using impulses for responsiveness. Multiplying by delta helps smooth it slightly.
-        const moveImpulse = this.movementDirection.multiplyScalar(this.moveSpeed * delta * 10); // Adjust multiplier for desired feel
+        // Using impulses for responsiveness
+        const moveImpulse = this.movementDirection.multiplyScalar(this.moveSpeed * delta * 10);
         playerBody.applyImpulse({ x: moveImpulse.x, y: 0, z: moveImpulse.z }, true);
 
         // --- Limit Linear Velocity --- 

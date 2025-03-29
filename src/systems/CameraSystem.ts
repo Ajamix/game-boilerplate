@@ -19,7 +19,8 @@ export class CameraSystem {
   // Reusable objects to avoid garbage collection
   private cameraDirection = new THREE.Vector3();
   private tempVec = new THREE.Vector3();
-  private tempQuat = new THREE.Quaternion();
+  private yawQuaternion = new THREE.Quaternion();
+  private pitchQuaternion = new THREE.Quaternion();
   private upVector = new THREE.Vector3(0, 1, 0);
   private rightVector = new THREE.Vector3(1, 0, 0);
   private forwardVector = new THREE.Vector3(0, 0, -1);
@@ -37,6 +38,38 @@ export class CameraSystem {
     this.currentRotationY = euler.y;
     
     console.log('CameraSystem initialized');
+  }
+  
+  /**
+   * Returns the camera's current forward vector (horizontal plane only).
+   * @returns A normalized vector representing the camera's forward direction.
+   */
+  public getForwardVector(): THREE.Vector3 {
+    // Get camera's raw forward vector (-Z axis)
+    const forward = new THREE.Vector3(0, 0, -1);
+    forward.applyQuaternion(this.camera.quaternion);
+    
+    // Project onto horizontal plane
+    forward.y = 0;
+    forward.normalize();
+    
+    return forward;
+  }
+  
+  /**
+   * Returns the camera's current right vector (horizontal plane only).
+   * @returns A normalized vector representing the camera's right direction.
+   */
+  public getRightVector(): THREE.Vector3 {
+    // Get camera's raw right vector (X axis)
+    const right = new THREE.Vector3(1, 0, 0);
+    right.applyQuaternion(this.camera.quaternion);
+    
+    // Project onto horizontal plane
+    right.y = 0;
+    right.normalize();
+    
+    return right;
   }
   
   /**
@@ -66,13 +99,14 @@ export class CameraSystem {
     // Update camera rotation angles based on mouse input
     this.updateRotation(mouseDelta, settings.sensitivity);
     
-    // Update player mesh rotation to match camera's horizontal rotation
-    this.updatePlayerOrientation(playerMesh);
+    // Update player orientation based on camera mode
+    this.updatePlayerOrientation(playerMesh, mode);
     
     // Position camera based on current camera mode
     if (mode === CameraMode.FirstPerson) {
       this.updateFirstPersonCamera(settings);
     } else {
+      // Both ThirdPerson and Orbital mode use the same camera positioning logic
       this.updateThirdPersonCamera(settings);
     }
     
@@ -85,7 +119,7 @@ export class CameraSystem {
   
   /**
    * Updates camera rotation based on mouse input.
-   * Uses separate X and Y rotations to avoid gimbal lock.
+   * Uses separate quaternions for pitch and yaw for more stable rotations.
    */
   private updateRotation(mouseDelta: { x: number, y: number }, sensitivity: number): void {
     if (mouseDelta.x === 0 && mouseDelta.y === 0) return;
@@ -93,28 +127,41 @@ export class CameraSystem {
     // Scale sensitivity
     const sensitivityFactor = sensitivity * 0.01;
     
-    // Update rotation angles (negative because moving mouse right should rotate right)
-    this.currentRotationY -= mouseDelta.x * sensitivityFactor;
-    this.currentRotationX -= mouseDelta.y * sensitivityFactor;
+    // Calculate movement with optional smoothing for large movements
+    const smoothX = Math.sign(mouseDelta.x) * Math.min(Math.abs(mouseDelta.x), 20);
+    const smoothY = Math.sign(mouseDelta.y) * Math.min(Math.abs(mouseDelta.y), 20);
+    
+    // Update rotation angles (negative for correct direction)
+    this.currentRotationY -= smoothX * sensitivityFactor;
+    this.currentRotationX -= smoothY * sensitivityFactor;
     
     // Clamp vertical rotation to prevent flipping
-    this.currentRotationX = Math.max(-Math.PI / 2.1, Math.min(Math.PI / 2.1, this.currentRotationX));
+    this.currentRotationX = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, this.currentRotationX));
     
-    // Create quaternion from the rotation (YXZ order to prevent gimbal lock)
-    // First rotate around Y axis (left/right)
-    this.targetQuaternion.setFromAxisAngle(this.upVector, this.currentRotationY);
+    // Create separate quaternions for pitch and yaw
+    // Yaw (Y-axis rotation)
+    this.yawQuaternion.setFromAxisAngle(this.upVector, this.currentRotationY);
     
-    // Then rotate around X axis (up/down) relative to the rotated space
-    this.tempQuat.setFromAxisAngle(this.rightVector, this.currentRotationX);
-    this.targetQuaternion.multiply(this.tempQuat);
+    // Pitch (X-axis rotation) - around the world X axis
+    this.pitchQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), this.currentRotationX);
+    
+    // Combine the rotations: yaw first, then pitch
+    // This correctly represents a camera that first rotates horizontally, then vertically
+    this.targetQuaternion.copy(this.yawQuaternion).multiply(this.pitchQuaternion);
   }
   
   /**
-   * Updates player mesh orientation to match camera's horizontal rotation.
+   * Updates player mesh orientation to match camera's horizontal rotation
+   * depending on the current camera mode.
    */
-  private updatePlayerOrientation(playerMesh: THREE.Object3D): void {
-    // Only rotate player mesh around the Y axis (horizontal rotation)
-    playerMesh.rotation.y = this.currentRotationY;
+  private updatePlayerOrientation(playerMesh: THREE.Object3D, mode: CameraMode): void {
+    // In FirstPerson and ThirdPerson modes, player faces where camera points
+    // In Orbital mode, player orientation remains independent
+    if (mode === CameraMode.FirstPerson || mode === CameraMode.ThirdPerson) {
+      // Only rotate player mesh around the Y axis (horizontal rotation)
+      playerMesh.rotation.y = this.currentRotationY;
+    }
+    // In Orbital mode, we don't update player orientation here - it would be handled elsewhere
   }
   
   /**
@@ -179,4 +226,4 @@ export class CameraSystem {
     this.camera.position.copy(this.targetPosition);
     this.camera.quaternion.copy(this.targetQuaternion);
   }
-} 
+}
