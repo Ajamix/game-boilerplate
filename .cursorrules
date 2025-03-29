@@ -1,0 +1,77 @@
+### IMPORTANT
+ DO NOT TAKE ANY SHORTCUTES AT WHEN IT COMES TO EVERYTHING AT ALL.
+
+### Mental Checklist to Avoid Spaghetti
+ Is this file < 200 lines?
+
+ Does this file do one job only?
+
+ Am I mutating any global state?
+
+ Does this function belong in another file?
+
+ Is update/render cleanly separated?
+
+ Can I explain what this file does in 1 sentence?
+
+ 5. No Globals — Use Stores for Shared State
+Use Zustand for:
+
+GameState (e.g., isPaused, isGameOver)
+
+PlayerState (health, position, inventory)
+
+InputState (which keys are pressed this frame)
+
+Zustand lets you access state from anywhere, without creating global chaos.
+
+6. Keep Systems Stateless Where Possible
+Systems take in state and return behavior.
+
+This makes them testable, reusable, and less spaghetti-prone.
+
+4. Never Mix Update + Render Logic
+Use Loop.ts to clearly separate update() and render()
+
+Example:
+
+ts
+Copy
+Edit
+loop.onUpdate(() => {
+  InputSystem.update()
+  PlayerSystem.update()
+  PhysicsSystem.step()
+})
+
+loop.onRender(() => {
+  renderer.render(scene, camera)
+})
+
+3. Use Dependency Injection (lightweight)
+Instead of having systems directly grab state or input:
+
+ts
+Copy
+Edit
+// Bad
+PlayerSystem.update(globalInput, gameState);
+
+// Good
+PlayerSystem.update({
+  input: this.input,
+  state: this.playerState
+});
+
+How to Keep Code Clean, Short, and Scalable
+1. Max File Length: ~150–200 lines
+Split large classes into partials or submodules (e.g., Player.ts can import PlayerControls, PlayerAnimation, etc.)
+
+If a file grows, ask: is this doing more than one job?
+
+2. One Job per File (Single Responsibility)
+File	Should ONLY handle...
+InputSystem.ts	Translating raw input → abstract actions
+PlayerSystem.ts	Applying movement based on state + collisions
+AssetLoader.ts	Loading & caching models, textures
+GameScene.ts	Setting up the world for that specific scene

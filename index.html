@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game Boilerplate</title>
+    <!-- Add a canvas element for Three.js -->
+    <canvas id="gameCanvas"></canvas>
+    <!-- Add a div for the React debug UI -->
+    <div id="debug-ui"></div>
+    <style>
+      /* Basic CSS reset and canvas styling */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html, body {
+        overflow: hidden; /* Prevent scrollbars */
+        background-color: #111; /* Dark background */
+      }
+      #gameCanvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        outline: none; /* Remove focus outline */
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Remove the default Vite div -->
+    <!-- <div id="app"></div> -->
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
