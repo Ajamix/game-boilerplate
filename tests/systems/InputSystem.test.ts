@@ -41,9 +41,10 @@ vi.mock('../../src/config/inputMappings', () => ({
   preventDefaultKeys: new Set(['Space', 'ArrowUp', 'ArrowDown'])
 }));
 
-// Now import the module under test and dependencies
+// Now import the module under test
 import { InputSystem } from '../../src/systems/InputSystem';
-import { InputAction } from '../../src/enums/InputAction';
+// Removing unused imports
+// import { InputAction } from '../../src/enums/InputAction';
 
 // Create a mock canvas element
 const mockCanvas = {
@@ -135,13 +136,16 @@ describe('InputSystem', () => {
     it('should handle keydown events correctly', () => {
       inputSystem.start();
       
-      // Create keydown event
-      const keydownEvent = new Event('keydown') as any;
-      keydownEvent.code = 'KeyW';
-      keydownEvent.repeat = false;
+      // Create keydown event using a custom object instead of Event constructor
+      const keydownEvent = {
+        type: 'keydown',
+        code: 'KeyW',
+        repeat: false,
+        preventDefault: vi.fn()
+      };
       
       // Dispatch event
-      window.dispatchEvent(keydownEvent);
+      window.dispatchEvent(keydownEvent as any);
       
       // Verify the action is set in the store
       expect(mockStore.setAction).toHaveBeenCalledWith('FORWARD', true);
@@ -151,11 +155,14 @@ describe('InputSystem', () => {
       inputSystem.start();
       
       // Create keyup event
-      const keyupEvent = new Event('keyup') as any;
-      keyupEvent.code = 'KeyW';
+      const keyupEvent = {
+        type: 'keyup',
+        code: 'KeyW',
+        preventDefault: vi.fn()
+      };
       
       // Dispatch event
-      window.dispatchEvent(keyupEvent);
+      window.dispatchEvent(keyupEvent as any);
       
       // Verify the action is set in the store
       expect(mockStore.setAction).toHaveBeenCalledWith('FORWARD', false);
@@ -168,12 +175,15 @@ describe('InputSystem', () => {
       mockStore.setAction.mockClear();
       
       // Create repeated keydown event
-      const keydownEvent = new Event('keydown') as any;
-      keydownEvent.code = 'KeyW';
-      keydownEvent.repeat = true;
+      const keydownEvent = {
+        type: 'keydown',
+        code: 'KeyW',
+        repeat: true,
+        preventDefault: vi.fn()
+      };
       
       // Dispatch event
-      window.dispatchEvent(keydownEvent);
+      window.dispatchEvent(keydownEvent as any);
       
       // Verify setAction is not called
       expect(mockStore.setAction).not.toHaveBeenCalled();
