@@ -18,10 +18,12 @@ export class Time {
     public update(): void {
         const currentTime = performance.now();
         this.delta = (currentTime - this.previousTime) / 1000; // Convert ms to seconds
-        this.elapsed += this.delta;
-        this.previousTime = currentTime;
-
+        
         // Clamp delta time to avoid large jumps (e.g., when debugging)
         this.delta = Math.min(this.delta, 0.1);
+        
+        // Use clamped delta time to update elapsed time
+        this.elapsed += this.delta;
+        this.previousTime = currentTime;
     }
 } 

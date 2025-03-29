@@ -3,6 +3,7 @@ import { Loop } from './Loop';
 import { GameScene } from '../scenes/GameScene';
 import { PhysicsSystem } from '../systems/PhysicsSystem';
 import { InputSystem } from '../systems/InputSystem';
+import { PlayerSystem } from '../systems/PlayerSystem';
 
 // For Debug Renderer
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -20,6 +21,7 @@ export class Engine {
     private _activeScene!: GameScene;
     private physicsSystem!: PhysicsSystem;
     private inputSystem!: InputSystem;
+    private playerSystem!: PlayerSystem;
     private canvasElement: HTMLCanvasElement;
 
     // Debug rendering
@@ -31,6 +33,7 @@ export class Engine {
         this.loop = new Loop();
         this.physicsSystem = new PhysicsSystem();
         this.inputSystem = new InputSystem(this.canvasElement);
+        this.playerSystem = new PlayerSystem();
 
         this.initializeRenderer(canvas);
         this.initializeCamera();
@@ -42,6 +45,12 @@ export class Engine {
             
             if (this.activeScene) {
                 this.activeScene.update(delta, elapsed);
+                
+                // Update player system, passing the cube's body
+                const playerBody = this.activeScene.cubeBody; 
+                if (playerBody) {
+                    this.playerSystem.update(playerBody, delta);
+                }
             }
 
             this.inputSystem.update();
