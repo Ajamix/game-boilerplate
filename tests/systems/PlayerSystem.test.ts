@@ -42,6 +42,9 @@ vi.mock('three', () => ({
     normalize: vi.fn().mockReturnThis(),
     multiplyScalar: vi.fn().mockReturnThis(),
     lengthSq: vi.fn().mockReturnValue(0),
+    addScaledVector: vi.fn().mockReturnThis(),
+    subVectors: vi.fn().mockReturnThis(),
+    copy: vi.fn().mockReturnThis(),
     x: 0,
     y: 0,
     z: 0
@@ -75,12 +78,24 @@ describe('PlayerSystem', () => {
       applyImpulse: vi.fn(),
       setLinvel: vi.fn(),
       linvel: vi.fn(() => ({ x: 0, y: 0, z: 0 })),
+      // Add translation method required for ground check
+      translation: vi.fn(() => ({ x: 0, y: 1.0, z: 0 })),
+      // These might be needed by other parts of the player system
+      setTranslation: vi.fn(),
+      setAngvel: vi.fn(),
+      gravityScale: vi.fn(() => 1.0),
+      setGravityScale: vi.fn(),
     };
     
     playerSystem = new PlayerSystem();
   });
   
   it('should apply damping impulse when no movement keys are pressed', () => {
+    // Mock translation to indicate player is on ground
+    mockRigidBody.translation.mockReturnValue({ x: 0, y: 0.9, z: 0 });
+    // Mock low vertical velocity for ground check
+    mockRigidBody.linvel.mockReturnValue({ x: 0, y: 0.1, z: 0 });
+    
     // Even with no movement keys, damping may be applied
     playerSystem.update(mockRigidBody, 0.016);
     
@@ -91,6 +106,10 @@ describe('PlayerSystem', () => {
   it('should apply forward impulse when forward key is pressed', () => {
     // Set the forward action to true
     mockActions[ACTIONS.FORWARD] = true;
+    
+    // Simulate player on ground
+    mockRigidBody.translation.mockReturnValue({ x: 0, y: 0.9, z: 0 });
+    mockRigidBody.linvel.mockReturnValue({ x: 0, y: 0.1, z: 0 });
     
     playerSystem.update(mockRigidBody, 0.016);
     
@@ -107,6 +126,10 @@ describe('PlayerSystem', () => {
   it('should apply jump impulse when jump key is pressed and player is on ground', () => {
     // Set the jump action to true
     mockActions[ACTIONS.JUMP] = true;
+    
+    // Simulate player on ground
+    mockRigidBody.translation.mockReturnValue({ x: 0, y: 0.9, z: 0 });
+    mockRigidBody.linvel.mockReturnValue({ x: 0, y: 0.1, z: 0 });
     
     playerSystem.update(mockRigidBody, 0.016);
     
@@ -136,6 +159,10 @@ describe('PlayerSystem', () => {
     mockActions[ACTIONS.FORWARD] = true;
     mockActions[ACTIONS.RIGHT] = true;
     
+    // Simulate player on ground
+    mockRigidBody.translation.mockReturnValue({ x: 0, y: 0.9, z: 0 });
+    mockRigidBody.linvel.mockReturnValue({ x: 0, y: 0.1, z: 0 });
+    
     playerSystem.update(mockRigidBody, 0.016);
     
     expect(mockRigidBody.applyImpulse).toHaveBeenCalled();
@@ -160,6 +187,9 @@ describe('PlayerSystem', () => {
   it('should limit velocity when exceeding max speed', () => {
     // Mock a high velocity
     mockRigidBody.linvel.mockReturnValue({ x: 10, y: 0, z: 10 });
+    
+    // Simulate player on ground
+    mockRigidBody.translation.mockReturnValue({ x: 0, y: 0.9, z: 0 });
     
     playerSystem.update(mockRigidBody, 0.016);
     

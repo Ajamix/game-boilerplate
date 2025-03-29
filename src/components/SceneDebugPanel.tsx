@@ -23,6 +23,8 @@ export function SceneDebugPanel({ gameScene, playerSystem }: SceneDebugPanelProp
     // Track movement parameters for debug UI
     const [moveSpeed, setMoveSpeed] = useState(5.0);
     const [jumpForce, setJumpForce] = useState(7.0);
+    const [maxSpeed, setMaxSpeed] = useState(10.0);
+    const [damping, setDamping] = useState(0.9);
 
     // Refs to hold the scene objects
     const cubeRef = useRef<THREE.Mesh | null>(null);
@@ -48,6 +50,8 @@ export function SceneDebugPanel({ gameScene, playerSystem }: SceneDebugPanelProp
         if (playerSystem) {
             setMoveSpeed(playerSystem.moveSpeed);
             setJumpForce(playerSystem.jumpForce);
+            setMaxSpeed(playerSystem.maxSpeed);
+            setDamping(playerSystem.damping);
         }
     }, [playerSystem]);
 
@@ -90,7 +94,23 @@ export function SceneDebugPanel({ gameScene, playerSystem }: SceneDebugPanelProp
                 if (playerSystem) playerSystem.jumpForce = v;
             },
         },
-    }), { store }, [moveSpeed, jumpForce, playerSystem]);
+        maxSpeed: {
+            value: maxSpeed,
+            min: 1, max: 20, step: 0.5,
+            onChange: (v) => { 
+                setMaxSpeed(v);
+                if (playerSystem) playerSystem.maxSpeed = v;
+            },
+        },
+        damping: {
+            value: damping,
+            min: 0, max: 1, step: 0.01,
+            onChange: (v) => { 
+                setDamping(v);
+                if (playerSystem) playerSystem.damping = v;
+            },
+        },
+    }), { store }, [moveSpeed, jumpForce, maxSpeed, damping, playerSystem]);
 
 
 

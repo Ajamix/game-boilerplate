@@ -39,6 +39,27 @@ export class GameScene {
     public get cubeBody(): RAPIER.RigidBody { return this._cubeBody; }
     // No getter for planeBody needed typically as it's fixed
 
+    // --- Setters for Light Control ---
+    /**
+     * Sets the intensity of the ambient light
+     * @param intensity New intensity value
+     */
+    public setAmbientLightIntensity(intensity: number): void {
+        if (this._ambientLight) {
+            this._ambientLight.intensity = intensity;
+        }
+    }
+
+    /**
+     * Sets the intensity of the directional light
+     * @param intensity New intensity value
+     */
+    public setDirectionalLightIntensity(intensity: number): void {
+        if (this._directionalLight) {
+            this._directionalLight.intensity = intensity;
+        }
+    }
+
     // --- Initialization Methods ---
 
     private initializeScene(): void {

@@ -7,8 +7,10 @@ import * as THREE from 'three'; // Use THREE for Vector3
  * Handles player movement based on input actions.
  */
 export class PlayerSystem {
-    public moveSpeed: number = 5.0; // Make public for debug panel
-    public jumpForce: number = 7.0; // Make public for debug panel
+    public moveSpeed: number = 5.0; // Movement speed multiplier
+    public jumpForce: number = 7.0; // Jump impulse strength
+    public maxSpeed: number = 10.0; // Maximum horizontal velocity
+    public damping: number = 0.90; // Damping factor (0-1, closer to 0 = stronger damping)
     private movementDirection = new THREE.Vector3();
     
     // Constants for ground check
@@ -87,10 +89,9 @@ export class PlayerSystem {
         // --- Limit Linear Velocity --- 
         // Clamp horizontal speed to prevent runaway acceleration from impulses
         const horizontalVelocity = new THREE.Vector2(currentVelocity.x, currentVelocity.z);
-        const maxSpeed = this.moveSpeed; 
-
-        if (horizontalVelocity.lengthSq() > maxSpeed * maxSpeed) {
-            horizontalVelocity.normalize().multiplyScalar(maxSpeed);
+        
+        if (horizontalVelocity.lengthSq() > this.maxSpeed * this.maxSpeed) {
+            horizontalVelocity.normalize().multiplyScalar(this.maxSpeed);
             playerBody.setLinvel({ x: horizontalVelocity.x, y: currentVelocity.y, z: horizontalVelocity.y }, true);
         }
         
@@ -111,11 +112,10 @@ export class PlayerSystem {
         if (this.movementDirection.lengthSq() === 0) {
             // Only apply horizontal damping if grounded, to avoid slowing in mid-air
             if (this.isGrounded(playerBody)) {
-                const dampingFactor = 0.90; // Adjust factor (closer to 0 = stronger damping)
                 playerBody.setLinvel({ 
-                    x: currentVelocity.x * dampingFactor, 
+                    x: currentVelocity.x * this.damping, 
                     y: currentVelocity.y, 
-                    z: currentVelocity.z * dampingFactor 
+                    z: currentVelocity.z * this.damping 
                 }, true);
             }
         }
