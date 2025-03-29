@@ -58,6 +58,12 @@ export const GameStateDisplay: React.FC<GameStateDisplayProps> = ({
 
   // Skip rendering if no player body
   if (!playerBody) return null;
+  
+  // Format a number to always show with sign (+ or -) and fixed width
+  const formatValue = (value: number): string => {
+    const sign = value >= 0 ? '+' : '';
+    return `${sign}${value.toFixed(2)}`;
+  };
 
   return (
     <div 
@@ -76,17 +82,32 @@ export const GameStateDisplay: React.FC<GameStateDisplayProps> = ({
         maxWidth: '300px'
       }}
     >
-      <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Player State</div>
+      <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>PLAYER STATE</div>
       
-      <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr' }}>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: '80px 1fr',
+        rowGap: '4px'
+      }}>
         <div>Position:</div>
-        <div>{`X:${position.x} Y:${position.y} Z:${position.z}`}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
+          <span>X: {formatValue(position.x)}</span>
+          <span>Y: {formatValue(position.y)}</span>
+          <span>Z: {formatValue(position.z)}</span>
+        </div>
         
         <div>Velocity:</div>
-        <div>{`X:${velocity.x} Y:${velocity.y} Z:${velocity.z}`}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
+          <span>X: {formatValue(velocity.x)}</span>
+          <span>Y: {formatValue(velocity.y)}</span>
+          <span>Z: {formatValue(velocity.z)}</span>
+        </div>
         
         <div>Grounded:</div>
-        <div style={{ color: isGrounded ? '#4CAF50' : '#F44336' }}>
+        <div style={{ 
+          color: isGrounded ? '#4CAF50' : '#F44336',
+          fontWeight: 'bold'
+        }}>
           {isGrounded ? 'YES' : 'NO'}
         </div>
       </div>
