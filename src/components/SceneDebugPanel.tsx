@@ -20,11 +20,6 @@ export function SceneDebugPanel({ gameScene, playerSystem }: SceneDebugPanelProp
     // Create a unique store for this panel instance
     const store = useStoreContext();
     
-    // State to track physics values that need frequent updates
-    const [playerPos, setPlayerPos] = useState({ x: 0, y: 0, z: 0 });
-    const [playerVel, setPlayerVel] = useState({ x: 0, y: 0, z: 0 });
-    const [isGrounded, setIsGrounded] = useState(false);
-
     // Track movement parameters for debug UI
     const [moveSpeed, setMoveSpeed] = useState(5.0);
     const [jumpForce, setJumpForce] = useState(7.0);
@@ -36,62 +31,6 @@ export function SceneDebugPanel({ gameScene, playerSystem }: SceneDebugPanelProp
     const directionalLightRef = useRef<THREE.DirectionalLight | null>(null);
     const cubeBodyRef = useRef<RAPIER.RigidBody | null>(null);
     
-    // Update interval for physics data
-    useEffect(() => {
-        if (!gameScene) return;
-        
-        // Update on each animation frame for smoother display
-        const updateFrame = () => {
-            if (cubeBodyRef.current) {
-                const pos = cubeBodyRef.current.translation();
-                const vel = cubeBodyRef.current.linvel();
-                
-                setPlayerPos({ 
-                    x: parseFloat(pos.x.toFixed(2)), 
-                    y: parseFloat(pos.y.toFixed(2)), 
-                    z: parseFloat(pos.z.toFixed(2)) 
-                });
-                
-                setPlayerVel({ 
-                    x: parseFloat(vel.x.toFixed(2)), 
-                    y: parseFloat(vel.y.toFixed(2)), 
-                    z: parseFloat(vel.z.toFixed(2)) 
-                });
-                
-                // Get the grounded state using the PlayerSystem's check if available
-                if (playerSystem && cubeBodyRef.current) {
-                    setIsGrounded(playerSystem.checkIfGrounded(cubeBodyRef.current));
-                } else {
-                    // Fall back to our own check if playerSystem is not available
-                    // 1. Check if velocity is low (not bouncing/jumping)
-                    const lowVerticalVelocity = Math.abs(vel.y) < 0.2; 
-                    
-                    // 2. Check if close enough to ground level
-                    const playerHeight = 1.8;
-                    // Calculate height of feet from ground (y=0)
-                    const feetPosition = pos.y - (playerHeight / 2);
-                    // Add small tolerance for ground check
-                    const groundDistance = Math.max(0, feetPosition);
-                    const isCloseToGround = groundDistance < 0.15; 
-                    
-                    setIsGrounded(lowVerticalVelocity && isCloseToGround);
-                }
-            }
-            
-            // Continue the update loop
-            requestID = requestAnimationFrame(updateFrame);
-        };
-        
-        // Start the update loop
-        let requestID = requestAnimationFrame(updateFrame);
-        
-        // Cleanup function
-        return () => {
-            if (requestID) {
-                cancelAnimationFrame(requestID);
-            }
-        };
-    }, [gameScene]);
 
     // Effect to update refs when gameScene is available
     useEffect(() => {
@@ -153,21 +92,7 @@ export function SceneDebugPanel({ gameScene, playerSystem }: SceneDebugPanelProp
         },
     }), { store }, [moveSpeed, jumpForce, playerSystem]);
 
-    // --- Player State Monitoring ---
-    useControls('Player State', () => ({
-        // Position
-        'Position X': monitor(() => playerPos.x),
-        'Position Y': monitor(() => playerPos.y),
-        'Position Z': monitor(() => playerPos.z),
-        
-        // Velocity
-        'Velocity X': monitor(() => playerVel.x),
-        'Velocity Y': monitor(() => playerVel.y), 
-        'Velocity Z': monitor(() => playerVel.z),
-        
-        // Ground state
-        'Is Grounded': monitor(() => isGrounded),
-    }), { store }, [playerPos, playerVel, isGrounded]);
+
 
     useControls('Scene Objects', () => ({
         Player: folder({
