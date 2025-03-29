@@ -65,24 +65,44 @@ export class GameScene {
     }
 
     private addDebugObjects(): void {
-        // --- Debug Cube ---
-        const cubeSize = 1;
-        const halfExtents = cubeSize / 2;
-        const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-        this.trackDisposable(geometry); // Track geometry
+        // --- Player Character (Capsule Visual, Box Collider) ---
+        const playerHeight = 1.8; // Height in meters
+        const playerRadius = 0.4; // Radius in meters
+        const capsuleHalfHeight = (playerHeight - 2 * playerRadius) / 2;
+        
+        // Create capsule visual representation
+        const geometry = new THREE.CapsuleGeometry(playerRadius, capsuleHalfHeight * 2, 8, 16);
+        this.trackDisposable(geometry);
         const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-        this.trackDisposable(material); // Track material
-        this._cube = new THREE.Mesh(geometry, material);
-        this._cube.position.y = 3;
+        this.trackDisposable(material);
+        this._cube = new THREE.Mesh(geometry, material); // Still using _cube for compatibility
+        this._cube.position.y = playerHeight / 2 + 0.5; // Position so bottom is slightly above ground
         this._cube.castShadow = true;
         this._cube.receiveShadow = true;
-        this._cube.name = "DebugCube";
+        this._cube.name = "PlayerCapsule"; // Update name to reflect visual
         this.scene.add(this._cube);
 
-        const cubeBodyDesc = RAPIER.RigidBodyDesc.dynamic();
-        const cubeColliderDesc = RAPIER.ColliderDesc.cuboid(halfExtents, halfExtents, halfExtents)
-            .setRestitution(0.5)
+        // Physics Body - still using a box collider for now for compatibility
+        // Keep this matching the visual size approximately
+        const halfExtents = { 
+            x: playerRadius,
+            y: playerHeight / 2, // Half height
+            z: playerRadius 
+        };
+        
+        const cubeBodyDesc = RAPIER.RigidBodyDesc.dynamic()
+            .setTranslation(this._cube.position.x, this._cube.position.y, this._cube.position.z)
+            .setLinearDamping(0.5)
+            .setAngularDamping(0.5)
+            .lockRotations(); // Lock rotations to prevent flipping
+            
+        const cubeColliderDesc = RAPIER.ColliderDesc.cuboid(
+            halfExtents.x, halfExtents.y, halfExtents.z
+        )
+            .setRestitution(0.2)
+            .setFriction(0.7) // Better friction for character
             .setDensity(1.0);
+            
         this._cubeBody = this.physicsSystem.addBody(this._cube, cubeBodyDesc, cubeColliderDesc);
 
         // --- Ground Box (Replacing Plane for Debugging) ---
@@ -105,7 +125,8 @@ export class GameScene {
             groundSize / 2
         ).setRestitution(0.1);
         // Use the groundBox mesh for physics association
-        this.physicsSystem.addBody(groundBox, groundBodyDesc, groundColliderDesc);
+        this._planeBody = this.physicsSystem.addBody(groundBox, groundBodyDesc, groundColliderDesc);
+        this._plane = groundBox; // Assign groundBox to _plane for compatibility
     }
 
     // --- Update & Dispose ---

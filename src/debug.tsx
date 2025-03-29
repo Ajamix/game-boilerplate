@@ -19,7 +19,7 @@ export function initializeDebugUI(engine: Engine): void {
   ReactDOM.createRoot(debugUiContainer).render(
     <React.StrictMode>
       <LevaDebug isInitiallyVisible={true} />
-      <SceneDebugPanel gameScene={engine.activeScene} />
+      <SceneDebugPanel gameScene={engine.activeScene} playerSystem={engine.playerSystem} />
     </React.StrictMode>
   );
 

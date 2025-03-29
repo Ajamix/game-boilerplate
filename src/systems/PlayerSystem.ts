@@ -7,12 +7,45 @@ import * as THREE from 'three'; // Use THREE for Vector3
  * Handles player movement based on input actions.
  */
 export class PlayerSystem {
-    private moveSpeed: number = 5.0; // Adjust as needed
-    private jumpForce: number = 7.0;  // Adjust as needed
+    public moveSpeed: number = 5.0; // Make public for debug panel
+    public jumpForce: number = 7.0; // Make public for debug panel
     private movementDirection = new THREE.Vector3();
+    
+    // Constants for ground check
+    private readonly PLAYER_HEIGHT = 1.8;
+    private readonly GROUND_THRESHOLD = 0.15;
+    private readonly LOW_VELOCITY_THRESHOLD = 0.2;
 
     constructor() {
         console.log('PlayerSystem initialized.');
+    }
+    
+    /**
+     * Checks if the player is considered grounded.
+     * @param playerBody The player's rigid body
+     * @returns True if the player is on the ground
+     */
+    private isGrounded(playerBody: RAPIER.RigidBody): boolean {
+        const position = playerBody.translation();
+        const velocity = playerBody.linvel();
+        
+        // Calculate feet position
+        const feetPosition = position.y - (this.PLAYER_HEIGHT / 2);
+        const groundDistance = Math.max(0, feetPosition);
+        
+        // Check both distance to ground and vertical velocity
+        return groundDistance < this.GROUND_THRESHOLD && 
+               Math.abs(velocity.y) < this.LOW_VELOCITY_THRESHOLD;
+    }
+
+    /**
+     * Public method to check if a player body is grounded.
+     * Useful for external components like debug UI.
+     * @param playerBody The player's rigid body
+     * @returns True if the player is on the ground
+     */
+    public checkIfGrounded(playerBody: RAPIER.RigidBody): boolean {
+        return this.isGrounded(playerBody);
     }
 
     /**
@@ -24,6 +57,7 @@ export class PlayerSystem {
         if (!playerBody) return; // Don't run if body doesn't exist
 
         const actions = useInputStore.getState().actions;
+        const currentVelocity = playerBody.linvel();
 
         // --- Calculate Movement Direction --- 
         this.movementDirection.set(0, 0, 0);
@@ -52,7 +86,6 @@ export class PlayerSystem {
 
         // --- Limit Linear Velocity --- 
         // Clamp horizontal speed to prevent runaway acceleration from impulses
-        const currentVelocity = playerBody.linvel();
         const horizontalVelocity = new THREE.Vector2(currentVelocity.x, currentVelocity.z);
         const maxSpeed = this.moveSpeed; 
 
@@ -63,21 +96,28 @@ export class PlayerSystem {
         
         // --- Apply Jump Impulse --- 
         if (actions[InputAction.Jump]) {
-            // Rudimentary check: only jump if close to the ground (e.g., small vertical velocity)
-            // A proper implementation would use raycasting down or shape casting.
-            if (Math.abs(currentVelocity.y) < 0.1) { 
+            // Only jump if grounded
+            if (this.isGrounded(playerBody)) {
                 playerBody.setLinvel({ x: currentVelocity.x, y: 0, z: currentVelocity.z }, true); // Reset vertical velocity before jump
                 playerBody.applyImpulse({ x: 0, y: this.jumpForce, z: 0 }, true);
             }
+            
             // Immediately reset jump action to prevent multi-jump per press
             useInputStore.getState().setAction(InputAction.Jump, false);
         }
 
         // --- Apply Damping --- 
-        // Apply damping when there's no directional input to slow down
-        if (this.movementDirection.lengthSq() === 0 && Math.abs(currentVelocity.y) < 0.1) { // Only damp horizontal if near ground
-            const dampingFactor = 0.90; // Adjust factor (closer to 0 = stronger damping)
-            playerBody.setLinvel({ x: currentVelocity.x * dampingFactor, y: currentVelocity.y, z: currentVelocity.z * dampingFactor }, true);
+        // Only apply damping when there's no directional input
+        if (this.movementDirection.lengthSq() === 0) {
+            // Only apply horizontal damping if grounded, to avoid slowing in mid-air
+            if (this.isGrounded(playerBody)) {
+                const dampingFactor = 0.90; // Adjust factor (closer to 0 = stronger damping)
+                playerBody.setLinvel({ 
+                    x: currentVelocity.x * dampingFactor, 
+                    y: currentVelocity.y, 
+                    z: currentVelocity.z * dampingFactor 
+                }, true);
+            }
         }
     }
 } 

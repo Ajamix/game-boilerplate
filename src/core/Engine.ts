@@ -18,10 +18,11 @@ export class Engine {
     public renderer!: THREE.WebGLRenderer;
     public camera!: THREE.PerspectiveCamera;
     public get activeScene(): GameScene { return this._activeScene; }
+    public get playerSystem(): PlayerSystem { return this._playerSystem; }
     private _activeScene!: GameScene;
     private physicsSystem!: PhysicsSystem;
     private inputSystem!: InputSystem;
-    private playerSystem!: PlayerSystem;
+    private _playerSystem!: PlayerSystem;
     private canvasElement: HTMLCanvasElement;
 
     // Debug rendering
@@ -33,7 +34,7 @@ export class Engine {
         this.loop = new Loop();
         this.physicsSystem = new PhysicsSystem();
         this.inputSystem = new InputSystem(this.canvasElement);
-        this.playerSystem = new PlayerSystem();
+        this._playerSystem = new PlayerSystem();
 
         this.initializeRenderer(canvas);
         this.initializeCamera();
@@ -49,7 +50,7 @@ export class Engine {
                 // Update player system, passing the cube's body
                 const playerBody = this.activeScene.cubeBody; 
                 if (playerBody) {
-                    this.playerSystem.update(playerBody, delta);
+                    this._playerSystem.update(playerBody, delta);
                 }
             }
 
