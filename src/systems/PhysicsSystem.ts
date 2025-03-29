@@ -41,11 +41,21 @@ export class PhysicsSystem {
         bodyDesc.setTranslation(mesh.position.x, mesh.position.y, mesh.position.z);
         bodyDesc.setRotation(mesh.quaternion);
 
+        console.log(`[PhysicsSystem] Creating rigid body for: ${mesh.name || 'Unnamed'}`);
         const body = this.world.createRigidBody(bodyDesc);
-        this.world.createCollider(colliderDesc, body);
+        console.log(`[PhysicsSystem]   > Body handle: ${body?.handle}`); // Log body handle
 
-        this.entities.push({ mesh, body });
-        console.log(`Physics body added for mesh: ${mesh.name || 'Unnamed'}`);
+        console.log(`[PhysicsSystem] Creating collider...`);
+        const collider = this.world.createCollider(colliderDesc, body);
+        console.log(`[PhysicsSystem]   > Collider handle: ${collider?.handle}`); // Log collider handle
+
+        if (body && collider) {
+            this.entities.push({ mesh, body });
+            console.log(`[PhysicsSystem] Body and collider successfully added for: ${mesh.name || 'Unnamed'}`);
+        } else {
+            console.error(`[PhysicsSystem] FAILED to create body or collider for: ${mesh.name || 'Unnamed'}`);
+        }
+        
         return body;
     }
 
@@ -56,9 +66,10 @@ export class PhysicsSystem {
      * @param delta - Time step in seconds.
      */
     public step(delta: number): void {
-        // Step the simulation
         // Clamp delta to avoid instability with large time steps
-        const effectiveDelta = Math.min(delta, 0.1); 
+        const effectiveDelta = Math.min(delta, 0.1); // Keep clamping for potential future use
+        
+        // Step the simulation using only the event queue (default timestep)
         this.world.step(this.eventQueue);
 
         // --- Synchronization: Physics -> Graphics ---
@@ -72,17 +83,6 @@ export class PhysicsSystem {
                 entity.mesh.quaternion.set(rotation.x, rotation.y, rotation.z, rotation.w);
             }
         }
-
-        // --- Handle Physics Events (Example: Collision logging) ---
-        // this.eventQueue.drainCollisionEvents((handle1, handle2, started) => {
-        //     // Find entities corresponding to handles if needed
-        //     console.log(`Collision event: ${handle1}, ${handle2}, Started: ${started}`);
-        // });
-
-        // this.eventQueue.drainContactForceEvents(event => {
-        //     // Handle contact forces
-        //     console.log(`Contact force event on handle: ${event.collider1()}`);
-        // });
     }
 
     /**

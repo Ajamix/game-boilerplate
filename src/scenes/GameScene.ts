@@ -85,23 +85,28 @@ export class GameScene {
             .setDensity(1.0);
         this._cubeBody = this.physicsSystem.addBody(this._cube, cubeBodyDesc, cubeColliderDesc);
 
-        // --- Ground Plane ---
-        const planeSize = 20;
-        const planeGeometry = new THREE.PlaneGeometry(planeSize, planeSize);
-        this.trackDisposable(planeGeometry); // Track geometry
-        const planeMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, side: THREE.DoubleSide });
-        this.trackDisposable(planeMaterial); // Track material
-        this._plane = new THREE.Mesh(planeGeometry, planeMaterial);
-        this._plane.rotation.x = -Math.PI / 2;
-        this._plane.position.y = 0;
-        this._plane.receiveShadow = true;
-        this._plane.name = "GroundPlane";
-        this.scene.add(this._plane);
+        // --- Ground Box (Replacing Plane for Debugging) ---
+        const groundSize = 20;
+        const groundThickness = 0.2; // Keep it relatively thin but not extremely thin
+        const groundGeometry = new THREE.BoxGeometry(groundSize, groundThickness, groundSize);
+        this.trackDisposable(groundGeometry);
+        const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x888888 }); // Different color
+        this.trackDisposable(groundMaterial);
+        const groundBox = new THREE.Mesh(groundGeometry, groundMaterial);
+        groundBox.position.y = -groundThickness / 2; // Position so top surface is at y=0
+        groundBox.receiveShadow = true;
+        groundBox.name = "GroundBox";
+        this.scene.add(groundBox);
 
-        const planeBodyDesc = RAPIER.RigidBodyDesc.fixed();
-        const planeColliderDesc = RAPIER.ColliderDesc.cuboid(planeSize / 2, 0.1, planeSize / 2)
-            .setRestitution(0.1);
-        this._planeBody = this.physicsSystem.addBody(this._plane, planeBodyDesc, planeColliderDesc);
+        const groundBodyDesc = RAPIER.RigidBodyDesc.fixed(); // Still fixed
+        const groundColliderDesc = RAPIER.ColliderDesc.cuboid(
+            groundSize / 2,
+            groundThickness / 2,
+            groundSize / 2
+        ).setRestitution(0.1);
+        // Use the groundBox mesh for physics association
+        this.physicsSystem.addBody(groundBox, groundBodyDesc, groundColliderDesc);
+
     }
 
     // --- Update & Dispose ---
