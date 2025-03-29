@@ -63,8 +63,8 @@ describe('Time Class', () => {
         // Delta should be clamped
         expect(time.delta).toBe(0.1);
         
-        // NOTE: Elapsed still uses the unclamped delta (0.5s)
-        // If we wanted elapsed to use clamped delta, Time.ts would need to be modified
-        expect(time.elapsed).toBe(0.5);
+        // Elapsed should also use the clamped delta now that we've fixed Time.ts
+        // to clamp before incrementing elapsed
+        expect(time.elapsed).toBe(0.1);
     });
 }); 
