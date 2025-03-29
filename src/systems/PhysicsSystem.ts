@@ -41,18 +41,15 @@ export class PhysicsSystem {
         bodyDesc.setTranslation(mesh.position.x, mesh.position.y, mesh.position.z);
         bodyDesc.setRotation(mesh.quaternion);
 
-        console.log(`[PhysicsSystem] Creating rigid body for: ${mesh.name || 'Unnamed'}`);
+        // Create body and collider (logs removed)
         const body = this.world.createRigidBody(bodyDesc);
-        console.log(`[PhysicsSystem]   > Body handle: ${body?.handle}`); // Log body handle
-
-        console.log(`[PhysicsSystem] Creating collider...`);
         const collider = this.world.createCollider(colliderDesc, body);
-        console.log(`[PhysicsSystem]   > Collider handle: ${collider?.handle}`); // Log collider handle
 
+        // Check if creation was successful before adding
         if (body && collider) {
             this.entities.push({ mesh, body });
-            console.log(`[PhysicsSystem] Body and collider successfully added for: ${mesh.name || 'Unnamed'}`);
         } else {
+            // Keep error log in case creation fails unexpectedly
             console.error(`[PhysicsSystem] FAILED to create body or collider for: ${mesh.name || 'Unnamed'}`);
         }
         

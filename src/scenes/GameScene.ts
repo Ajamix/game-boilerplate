@@ -106,7 +106,6 @@ export class GameScene {
         ).setRestitution(0.1);
         // Use the groundBox mesh for physics association
         this.physicsSystem.addBody(groundBox, groundBodyDesc, groundColliderDesc);
-
     }
 
     // --- Update & Dispose ---

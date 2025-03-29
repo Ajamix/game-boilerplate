@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useInputStore, InputAction } from './InputState';
+import { useInputStore } from './InputState';
+// Import the action constants and value type from the enums directory
+import { InputAction } from '../enums/InputAction';
 
 // Get the initial state once for comparison
 const initialState = useInputStore.getState();
@@ -83,7 +85,7 @@ describe('InputState Store', () => {
         // Verify non-movement actions were NOT reset
         // Set Action1 *before* unlock, ensure it stays
         useInputStore.getState().setPointerLocked(true); // Lock
-        useInputStore.getState().setAction(InputAction.Action1, true); // Set Action1
+        useInputStore.getState().setAction(InputAction.Action1, true);
         useInputStore.getState().setPointerLocked(false); // Unlock
         expect(useInputStore.getState().actions[InputAction.Action1]).toBe(true); // Action1 should persist
     });

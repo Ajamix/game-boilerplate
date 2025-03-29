@@ -1,28 +1,30 @@
 import { create } from 'zustand';
+// Import the action constants and value type
+import { InputAction, InputActionValue } from '../enums/InputAction'; 
 
-// Define input actions using an enum for better type safety and clarity
-export enum InputAction {
-    Forward = 'FORWARD',
-    Backward = 'BACKWARD',
-    Left = 'LEFT',
-    Right = 'RIGHT',
-    Jump = 'JUMP',
-    Run = 'RUN',
-    Action1 = 'ACTION_1'
-}
+/* --- Definitions Moved to src/enums/InputAction.ts ---
+// Define input actions using a const object map instead of enum
+export const InputAction = {
+    Forward: 'FORWARD',
+    Backward: 'BACKWARD',
+    Left: 'LEFT',
+    Right: 'RIGHT',
+    Jump: 'JUMP',
+    Run: 'RUN',
+    Action1: 'ACTION_1'
+} as const; // Use 'as const' for stricter typing
 
-// Define the structure of the input state
-// Export the interface for clarity and potential use elsewhere
+// Type representing the values of the InputAction object
+export type InputActionValue = typeof InputAction[keyof typeof InputAction];
+*/
+
+// Define the structure of the input state using the imported value type
 export interface InputState {
-    // Use the enum as the key type
-    actions: Record<InputAction, boolean>;
-    // Mouse movement delta for the current frame
+    actions: Record<InputActionValue, boolean>; 
     mouseDelta: { x: number; y: number };
-    // Is the pointer currently locked to the game canvas?
     isPointerLocked: boolean;
 
-    // Actions to modify the state
-    setAction: (action: InputAction, value: boolean) => void;
+    setAction: (action: InputActionValue, value: boolean) => void;
     setMouseDelta: (deltaX: number, deltaY: number) => void;
     resetMouseDelta: () => void;
     setPointerLocked: (isLocked: boolean) => void;
@@ -32,7 +34,7 @@ export interface InputState {
  * Zustand store for managing user input state.
  */
 export const useInputStore = create<InputState>((set, get) => ({
-    // Initialize actions using enum members
+    // Initialize actions using object values
     actions: {
         [InputAction.Forward]: false,
         [InputAction.Backward]: false,
@@ -47,7 +49,7 @@ export const useInputStore = create<InputState>((set, get) => ({
 
     setAction: (action, value) =>
         set((state) => ({
-            // Use computed property names with the enum
+            // Key access remains the same
             actions: { ...state.actions, [action]: value },
         })),
 
@@ -68,7 +70,7 @@ export const useInputStore = create<InputState>((set, get) => ({
                 set((state) => ({
                     actions: {
                         ...state.actions,
-                        // Reset using enum members
+                        // Reset using object values
                         [InputAction.Forward]: false,
                         [InputAction.Backward]: false,
                         [InputAction.Left]: false,
@@ -81,8 +83,8 @@ export const useInputStore = create<InputState>((set, get) => ({
     },
 }));
 
-// Selectors now use the enum
+// Selectors now use the value type
 export const getInputState = (): InputState => useInputStore.getState();
-export const getActionState = (action: InputAction): boolean => useInputStore.getState().actions[action];
+export const getActionState = (action: InputActionValue): boolean => useInputStore.getState().actions[action];
 export const getMouseDelta = (): { x: number; y: number } => useInputStore.getState().mouseDelta;
 export const getIsPointerLocked = (): boolean => useInputStore.getState().isPointerLocked; 

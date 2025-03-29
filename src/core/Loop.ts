@@ -1,7 +1,13 @@
 import { Time } from './Time';
 
-type UpdateCallback = (delta: number, elapsed: number) => void;
-type RenderCallback = () => void;
+// Use interfaces instead of type aliases
+interface UpdateCallback {
+    (delta: number, elapsed: number): void;
+}
+
+interface RenderCallback {
+    (): void;
+}
 
 /**
  * Manages the main game loop using requestAnimationFrame.
@@ -20,7 +26,7 @@ export class Loop {
 
     /**
      * Add a function to be called on every update step.
-     * @param callback Function taking delta time and elapsed time (in seconds).
+     * @param callback Function implementing the UpdateCallback interface.
      */
     public onUpdate(callback: UpdateCallback): void {
         this.updateCallbacks.push(callback);
@@ -28,7 +34,7 @@ export class Loop {
 
     /**
      * Add a function to be called on every render step.
-     * @param callback Function to execute for rendering.
+     * @param callback Function implementing the RenderCallback interface.
      */
     public onRender(callback: RenderCallback): void {
         this.renderCallbacks.push(callback);

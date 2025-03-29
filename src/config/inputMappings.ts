@@ -1,10 +1,10 @@
-import { InputAction } from '../state/InputState';
+import { InputAction, InputActionValue } from '../enums/InputAction';
 
 /**
  * Defines the mapping between keyboard/mouse event codes and abstract InputActions.
  * This allows easy customization of controls.
  */
-export const keyActionMap: Readonly<Record<string, InputAction>> = Object.freeze({
+export const keyActionMap: Readonly<Record<string, InputActionValue>> = Object.freeze({
     // Keyboard Movement
     KeyW: InputAction.Forward,
     ArrowUp: InputAction.Forward,

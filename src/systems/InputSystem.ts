@@ -1,4 +1,4 @@
-import { useInputStore, InputAction } from '../state/InputState';
+import { useInputStore } from '../state/InputState';
 import { keyActionMap, preventDefaultKeys } from '../config/inputMappings';
 
 /**
