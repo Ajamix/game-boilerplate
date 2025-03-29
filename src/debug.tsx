@@ -4,7 +4,9 @@ import { LevaDebug } from './components/LevaDebug';
 import { SceneDebugPanel } from './components/SceneDebugPanel';
 import { GameStateDisplay } from './components/GameStateDisplay';
 import { CameraDebugPanel } from './components/CameraDebugPanel';
+import { FpsCounter } from './components/FpsCounter';
 import { Engine } from './core/Engine';
+import { DEBUG_CONFIG } from './config/debug';
 
 /**
  * Finds the debug UI container element and mounts the React debug components.
@@ -20,13 +22,27 @@ export function initializeDebugUI(engine: Engine): void {
 
   ReactDOM.createRoot(debugUiContainer).render(
     <React.StrictMode>
-      <LevaDebug isInitiallyVisible={true} />
-      <SceneDebugPanel gameScene={engine.activeScene} playerSystem={engine.playerSystem} />
-      <CameraDebugPanel />
-      <GameStateDisplay 
-        playerBody={engine.activeScene?.cubeBody || null} 
-        playerSystem={engine.playerSystem || null} 
-      />
+      {/* Debug Panel is the master switch for all UI debug components */}
+      {DEBUG_CONFIG.isEnabled('DEBUG_MODE') && (
+        <>
+          {/* Leva controls */}
+          <LevaDebug isInitiallyVisible={true} />
+
+          {/* Scene and camera debug panels */}
+          <SceneDebugPanel gameScene={engine.activeScene} playerSystem={engine.playerSystem} />
+          <CameraDebugPanel />
+          
+          {/* Conditional debug displays */}
+          {DEBUG_CONFIG.isEnabled('SHOW_PHYSICS_DEBUG') && (
+            <GameStateDisplay 
+              playerBody={engine.activeScene?.cubeBody || null} 
+              playerSystem={engine.playerSystem || null} 
+            />
+          )}
+          
+          {DEBUG_CONFIG.isEnabled('SHOW_FPS_COUNTER') && <FpsCounter />}
+        </>
+      )}
     </React.StrictMode>
   );
 

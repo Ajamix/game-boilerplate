@@ -6,6 +6,7 @@ import { InputSystem } from '../systems/InputSystem';
 import { PlayerSystem } from '../systems/PlayerSystem';
 import { CameraSystem } from '../systems/CameraSystem';
 import { useCameraStore } from '../state/CameraState';
+import { DEBUG_CONFIG } from '../config/debug';
 
 // For Debug Renderer
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -31,7 +32,7 @@ export class Engine {
 
     // Debug rendering
     private physicsDebugLineSegments!: THREE.LineSegments;
-    private showPhysicsDebug = true; // Control visibility (could be toggled via Leva)
+    private showPhysicsDebug = DEBUG_CONFIG.isEnabled('SHOW_PHYSICS_DEBUG');
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvasElement = canvas;
