@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { CameraMode, useCameraStore } from '../state/CameraState';
 import { getMouseDelta } from '../state/InputState';
 import RAPIER from '@dimforge/rapier3d-compat';
+import { PhysicsSystem } from './PhysicsSystem';
 
 /**
  * Manages camera positioning, rotation, and behavior based on the current camera mode.
@@ -9,6 +10,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
  */
 export class CameraSystem {
   private camera: THREE.PerspectiveCamera;
+  private physicsSystem: PhysicsSystem;
   
   // Core camera state
   private targetPosition = new THREE.Vector3();
@@ -27,8 +29,9 @@ export class CameraSystem {
   private playerPosition = new THREE.Vector3();
   private cameraOffset = new THREE.Vector3();
   
-  constructor(camera: THREE.PerspectiveCamera) {
+  constructor(camera: THREE.PerspectiveCamera, physicsSystem: PhysicsSystem) {
     this.camera = camera;
+    this.physicsSystem = physicsSystem;
     this.targetPosition.copy(camera.position);
     this.targetQuaternion.copy(camera.quaternion);
     
@@ -100,7 +103,7 @@ export class CameraSystem {
     this.updateRotation(mouseDelta, settings.sensitivity);
     
     // Update player orientation based on camera mode
-    this.updatePlayerOrientation(playerMesh, mode);
+    this.updatePlayerOrientation(playerBody, playerMesh, mode);
     
     // Position camera based on current camera mode
     if (mode === CameraMode.FirstPerson) {
@@ -154,12 +157,19 @@ export class CameraSystem {
    * Updates player mesh orientation to match camera's horizontal rotation
    * depending on the current camera mode.
    */
-  private updatePlayerOrientation(playerMesh: THREE.Object3D, mode: CameraMode): void {
+  private updatePlayerOrientation(playerBody: RAPIER.RigidBody, playerMesh: THREE.Object3D, mode: CameraMode): void {
     // In FirstPerson and ThirdPerson modes, player faces where camera points
     // In Orbital mode, player orientation remains independent
     if (mode === CameraMode.FirstPerson || mode === CameraMode.ThirdPerson) {
       // Only rotate player mesh around the Y axis (horizontal rotation)
       playerMesh.rotation.y = this.currentRotationY;
+      
+      // Also update the physics body to match the Y rotation
+      // Create a quaternion for Y rotation only (used for both mesh and physics)
+      const yRotation = new THREE.Quaternion().setFromAxisAngle(this.upVector, this.currentRotationY);
+      
+      // Update the physics body with the Y rotation
+      this.physicsSystem.updateBodyYRotation(playerMesh, this.currentRotationY);
     }
     // In Orbital mode, we don't update player orientation here - it would be handled elsewhere
   }

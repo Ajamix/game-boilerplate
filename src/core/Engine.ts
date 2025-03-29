@@ -42,7 +42,7 @@ export class Engine {
 
         this.initializeRenderer(canvas);
         this.initializeCamera();
-        this._cameraSystem = new CameraSystem(this.camera);
+        this._cameraSystem = new CameraSystem(this.camera, this.physicsSystem);
         
         this.loadScene(new GameScene(this.physicsSystem));
         this.initializePhysicsDebugRenderer(); // Initialize debug renderer

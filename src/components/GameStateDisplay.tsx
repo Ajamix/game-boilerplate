@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { PlayerSystem } from '../systems/PlayerSystem';
+import * as THREE from 'three';
 
 interface GameStateDisplayProps {
   playerBody: RAPIER.RigidBody | null;
@@ -17,6 +18,7 @@ export const GameStateDisplay: React.FC<GameStateDisplayProps> = ({
 }) => {
   const [position, setPosition] = useState({ x: 0, y: 0, z: 0 });
   const [velocity, setVelocity] = useState({ x: 0, y: 0, z: 0 });
+  const [rotation, setRotation] = useState({ x: 0, y: 0, z: 0 });
   const [isGrounded, setIsGrounded] = useState(false);
 
   useEffect(() => {
@@ -39,6 +41,18 @@ export const GameStateDisplay: React.FC<GameStateDisplayProps> = ({
           x: parseFloat(vel.x.toFixed(2)),
           y: parseFloat(vel.y.toFixed(2)),
           z: parseFloat(vel.z.toFixed(2))
+        });
+        
+        // Get player rotation
+        const rot = playerBody.rotation();
+        const euler = new THREE.Euler().setFromQuaternion(
+          new THREE.Quaternion(rot.x, rot.y, rot.z, rot.w)
+        );
+        
+        setRotation({
+          x: parseFloat((euler.x * THREE.MathUtils.RAD2DEG).toFixed(2)),
+          y: parseFloat((euler.y * THREE.MathUtils.RAD2DEG).toFixed(2)),
+          z: parseFloat((euler.z * THREE.MathUtils.RAD2DEG).toFixed(2))
         });
         
         if (playerSystem) {
@@ -101,6 +115,13 @@ export const GameStateDisplay: React.FC<GameStateDisplayProps> = ({
           <span>X: {formatValue(velocity.x)}</span>
           <span>Y: {formatValue(velocity.y)}</span>
           <span>Z: {formatValue(velocity.z)}</span>
+        </div>
+        
+        <div>Rotation:</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
+          <span>X: {formatValue(rotation.x)}°</span>
+          <span>Y: {formatValue(rotation.y)}°</span>
+          <span>Z: {formatValue(rotation.z)}°</span>
         </div>
         
         <div>Grounded:</div>

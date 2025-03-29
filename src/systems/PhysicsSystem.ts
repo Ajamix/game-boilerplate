@@ -102,6 +102,49 @@ export class PhysicsSystem {
         // we might need to free them, but Rapier usually handles attached colliders/bodies.
         console.log('PhysicsSystem resources cleared (JS GC handles Rapier world).');
     }
+
+    /**
+     * Updates a rigid body's rotation from a external quaternion (like from camera).
+     * @param mesh - The mesh associated with the rigid body.
+     * @param quaternion - The quaternion to apply for rotation.
+     * @returns True if the body was found and updated, false otherwise.
+     */
+    public updateBodyRotation(mesh: THREE.Object3D, quaternion: THREE.Quaternion): boolean {
+        // Find the entity with the given mesh
+        const entity = this.entities.find((e) => e.mesh === mesh);
+        if (!entity || entity.body.isFixed()) return false;
+        
+        // Convert Three.js quaternion to Rapier quaternion
+        const rotation = { x: quaternion.x, y: quaternion.y, z: quaternion.z, w: quaternion.w };
+        
+        // Apply the rotation to the rigid body
+        entity.body.setRotation(rotation, true);
+        
+        return true;
+    }
+    
+    /**
+     * Updates a rigid body's Y-axis rotation only (common for player characters).
+     * @param mesh - The mesh associated with the rigid body.
+     * @param yRotation - The Y rotation in radians.
+     * @returns True if the body was found and updated, false otherwise.
+     */
+    public updateBodyYRotation(mesh: THREE.Object3D, yRotation: number): boolean {
+        // Find the entity with the given mesh
+        const entity = this.entities.find((e) => e.mesh === mesh);
+        if (!entity || entity.body.isFixed()) return false;
+        
+        // Get current rotation
+        const currentRotation = entity.body.rotation();
+        
+        // Create a quaternion from the y-axis rotation
+        const quaternion = new RAPIER.Quaternion(0, Math.sin(yRotation / 2), 0, Math.cos(yRotation / 2));
+        
+        // Apply the rotation to the rigid body
+        entity.body.setRotation(quaternion, true);
+        
+        return true;
+    }
 }
 
 // Ensure Rapier is initialized (needs to be done once)
