@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { LevaDebug } from './components/LevaDebug';
 import { SceneDebugPanel } from './components/SceneDebugPanel';
 import { GameStateDisplay } from './components/GameStateDisplay';
+import { CameraDebugPanel } from './components/CameraDebugPanel';
 import { Engine } from './core/Engine';
 
 /**
@@ -21,6 +22,7 @@ export function initializeDebugUI(engine: Engine): void {
     <React.StrictMode>
       <LevaDebug isInitiallyVisible={true} />
       <SceneDebugPanel gameScene={engine.activeScene} playerSystem={engine.playerSystem} />
+      <CameraDebugPanel />
       <GameStateDisplay 
         playerBody={engine.activeScene?.cubeBody || null} 
         playerSystem={engine.playerSystem || null} 

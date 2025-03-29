@@ -2,6 +2,7 @@ import * as RAPIER from '@dimforge/rapier3d-compat';
 import { useInputStore } from '../state/InputState';
 import { InputAction } from '../enums/InputAction';
 import * as THREE from 'three'; // Use THREE for Vector3
+import { CameraMode, useCameraStore } from '../state/CameraState';
 
 /**
  * Handles player movement based on input actions.
@@ -12,6 +13,8 @@ export class PlayerSystem {
     public maxSpeed: number = 10.0; // Maximum horizontal velocity
     public damping: number = 0.90; // Damping factor (0-1, closer to 0 = stronger damping)
     private movementDirection = new THREE.Vector3();
+    private tempVec = new THREE.Vector3();
+    private cameraDirection = new THREE.Vector3();
     
     // Constants for ground check
     private readonly PLAYER_HEIGHT = 1.8;
@@ -60,9 +63,15 @@ export class PlayerSystem {
 
         const actions = useInputStore.getState().actions;
         const currentVelocity = playerBody.linvel();
-
+        const cameraState = useCameraStore.getState();
+        
+        // Get camera direction for movement relative to view
+        const camera = cameraState.target?.parent as THREE.Camera;
+        
         // --- Calculate Movement Direction --- 
         this.movementDirection.set(0, 0, 0);
+        
+        // Build movement direction based on input
         if (actions[InputAction.Forward]) {
             this.movementDirection.z -= 1;
         }
@@ -75,9 +84,36 @@ export class PlayerSystem {
         if (actions[InputAction.Right]) {
             this.movementDirection.x += 1;
         }
-
-        // Normalize direction vector if needed (prevents faster diagonal movement)
-        if (this.movementDirection.lengthSq() > 0) {
+        
+        // If we have camera-relative movement, convert local input to world space direction
+        if (camera && this.movementDirection.lengthSq() > 0) {
+            // Get camera forward direction (ignoring Y component)
+            camera.getWorldDirection(this.cameraDirection);
+            this.cameraDirection.y = 0;
+            this.cameraDirection.normalize();
+            
+            // Get camera right direction
+            const cameraRight = new THREE.Vector3(1, 0, 0);
+            cameraRight.applyQuaternion(camera.quaternion);
+            cameraRight.y = 0;
+            cameraRight.normalize();
+            
+            // Combine directions
+            this.tempVec.set(0, 0, 0);
+            // Forward/backward uses camera's forward direction
+            this.tempVec.addScaledVector(this.cameraDirection, -this.movementDirection.z);
+            // Left/right uses camera's right direction
+            this.tempVec.addScaledVector(cameraRight, this.movementDirection.x);
+            
+            // Normalize if necessary
+            if (this.tempVec.lengthSq() > 0) {
+                this.tempVec.normalize();
+            }
+            
+            // Replace movement direction with camera-oriented direction
+            this.movementDirection.copy(this.tempVec);
+        } else if (this.movementDirection.lengthSq() > 0) {
+            // Normalize direction vector if needed (prevents faster diagonal movement)
             this.movementDirection.normalize();
         }
 

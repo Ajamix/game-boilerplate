@@ -4,6 +4,8 @@ import { GameScene } from '../scenes/GameScene';
 import { PhysicsSystem } from '../systems/PhysicsSystem';
 import { InputSystem } from '../systems/InputSystem';
 import { PlayerSystem } from '../systems/PlayerSystem';
+import { CameraSystem } from '../systems/CameraSystem';
+import { useCameraStore } from '../state/CameraState';
 
 // For Debug Renderer
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -19,10 +21,12 @@ export class Engine {
     public camera!: THREE.PerspectiveCamera;
     public get activeScene(): GameScene { return this._activeScene; }
     public get playerSystem(): PlayerSystem { return this._playerSystem; }
+    public get cameraSystem(): CameraSystem { return this._cameraSystem; }
     private _activeScene!: GameScene;
     private physicsSystem!: PhysicsSystem;
     private inputSystem!: InputSystem;
     private _playerSystem!: PlayerSystem;
+    private _cameraSystem!: CameraSystem;
     private canvasElement: HTMLCanvasElement;
 
     // Debug rendering
@@ -38,8 +42,13 @@ export class Engine {
 
         this.initializeRenderer(canvas);
         this.initializeCamera();
+        this._cameraSystem = new CameraSystem(this.camera);
+        
         this.loadScene(new GameScene(this.physicsSystem));
         this.initializePhysicsDebugRenderer(); // Initialize debug renderer
+
+        // Set camera target once scene is loaded
+        useCameraStore.getState().setTarget(this._activeScene.cube);
 
         this.loop.onUpdate((delta, elapsed) => {
             this.physicsSystem.step(delta);
@@ -51,6 +60,9 @@ export class Engine {
                 const playerBody = this.activeScene.cubeBody; 
                 if (playerBody) {
                     this._playerSystem.update(playerBody, delta);
+                    
+                    // Update camera system with player information
+                    this._cameraSystem.update(playerBody, this.activeScene.cube, delta);
                 }
             }
 
