@@ -113,37 +113,15 @@ export class PlayerSystem {
             // Normalize input to prevent faster diagonal movement
             this.movementDirection.normalize();
             
-            // Calculate player's forward and right directions from mesh quaternion
-            if (cameraMode === CameraMode.FirstPerson) {
-                // In first-person mode, we use the player's orientation
-                // Get the player's current forward and right directions
-                this.playerForward.set(0, 0, -1);
-                this.playerForward.applyQuaternion(playerMesh.quaternion);
-                this.playerForward.y = 0; // Keep movement horizontal
-                this.playerForward.normalize();
+            // Use camera direction vectors for all camera modes
+            // This ensures consistent movement relative to where the camera is looking
+            this.tempVec.set(0, 0, 0);
                 
-                this.playerRight.set(1, 0, 0);
-                this.playerRight.applyQuaternion(playerMesh.quaternion);
-                this.playerRight.y = 0;
-                this.playerRight.normalize();
+            // Forward/backward uses camera's forward direction
+            this.tempVec.addScaledVector(this.cameraForward, -this.movementDirection.z);
                 
-                this.tempVec.set(0, 0, 0);
-                
-                // Forward/backward uses player's forward direction
-                this.tempVec.addScaledVector(this.playerForward, -this.movementDirection.z);
-                
-                // Left/right uses player's right direction
-                this.tempVec.addScaledVector(this.playerRight, this.movementDirection.x);
-            } else {
-                // In other modes (ThirdPerson, Orbital), movement is camera-relative
-                this.tempVec.set(0, 0, 0);
-                
-                // Forward/backward uses camera's forward direction
-                this.tempVec.addScaledVector(this.cameraForward, -this.movementDirection.z);
-                
-                // Left/right uses camera's right direction
-                this.tempVec.addScaledVector(this.cameraRight, this.movementDirection.x);
-            }
+            // Left/right uses camera's right direction
+            this.tempVec.addScaledVector(this.cameraRight, this.movementDirection.x);
             
             // Normalize and apply the final movement direction
             if (this.tempVec.lengthSq() > 0) {

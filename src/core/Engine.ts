@@ -112,6 +112,11 @@ export class Engine {
             1000
         );
         this.camera.position.set(0, 2, 5);
+        
+        // Rotate camera -90 degrees on Y axis to fix initial orientation
+        const rotationY = -Math.PI / 2; // -90 degrees in radians
+        const quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationY);
+        this.camera.quaternion.copy(quaternion);
     }
 
     public loadScene(scene: GameScene): void {
