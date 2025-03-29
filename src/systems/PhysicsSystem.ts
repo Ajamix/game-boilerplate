@@ -1,13 +1,6 @@
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
-
-// Interface to link a Three.js mesh with its Rapier rigid body
-interface PhysicsEntity {
-    mesh: THREE.Object3D; // Use Object3D for flexibility (Mesh, Group, etc.)
-    body: RAPIER.RigidBody;
-    // Optional: Collider if needed for direct access, though body.collider(0) often works
-    // collider: RAPIER.Collider;
-}
+import { PhysicsEntity } from '../types/Physics.types';
 
 /**
  * Manages the Rapier physics world, bodies, and simulation stepping.
@@ -60,12 +53,9 @@ export class PhysicsSystem {
      * Steps the physics simulation forward by the given delta time
      * and updates the corresponding Three.js mesh positions and rotations.
      *
-     * @param delta - Time step in seconds.
+     * @param _delta - Time step in seconds.
      */
-    public step(delta: number): void {
-        // Clamp delta to avoid instability with large time steps
-        const effectiveDelta = Math.min(delta, 0.1); // Keep clamping for potential future use
-        
+    public step(_delta: number): void {
         // Step the simulation using only the event queue (default timestep)
         this.world.step(this.eventQueue);
 
@@ -135,7 +125,7 @@ export class PhysicsSystem {
         if (!entity || entity.body.isFixed()) return false;
         
         // Get current rotation
-        const currentRotation = entity.body.rotation();
+        // const _currentRotation = entity.body.rotation();
         
         // Create a quaternion from the y-axis rotation
         const quaternion = new RAPIER.Quaternion(0, Math.sin(yRotation / 2), 0, Math.cos(yRotation / 2));

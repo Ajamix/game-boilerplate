@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 // Import the action constants and value type
 import { InputAction, InputActionValue } from '../enums/InputAction'; 
+import { InputState as IInputState } from '../types/Input.types';
 
 /* --- Definitions Moved to src/enums/InputAction.ts ---
 // Define input actions using a const object map instead of enum
@@ -18,22 +19,10 @@ export const InputAction = {
 export type InputActionValue = typeof InputAction[keyof typeof InputAction];
 */
 
-// Define the structure of the input state using the imported value type
-export interface InputState {
-    actions: Record<InputActionValue, boolean>; 
-    mouseDelta: { x: number; y: number };
-    isPointerLocked: boolean;
-
-    setAction: (action: InputActionValue, value: boolean) => void;
-    setMouseDelta: (deltaX: number, deltaY: number) => void;
-    resetMouseDelta: () => void;
-    setPointerLocked: (isLocked: boolean) => void;
-}
-
 /**
  * Zustand store for managing user input state.
  */
-export const useInputStore = create<InputState>((set, get) => ({
+export const useInputStore = create<IInputState>((set, get) => ({
     // Initialize actions using object values
     actions: {
         [InputAction.Forward]: false,
@@ -84,7 +73,7 @@ export const useInputStore = create<InputState>((set, get) => ({
 }));
 
 // Selectors now use the value type
-export const getInputState = (): InputState => useInputStore.getState();
+export const getInputState = (): IInputState => useInputStore.getState();
 export const getActionState = (action: InputActionValue): boolean => useInputStore.getState().actions[action];
 export const getMouseDelta = (): { x: number; y: number } => useInputStore.getState().mouseDelta;
 export const getIsPointerLocked = (): boolean => useInputStore.getState().isPointerLocked; 

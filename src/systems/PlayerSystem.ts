@@ -2,7 +2,6 @@ import * as RAPIER from '@dimforge/rapier3d-compat';
 import { useInputStore } from '../state/InputState';
 import { InputAction } from '../enums/InputAction';
 import * as THREE from 'three'; // Use THREE for Vector3
-import { CameraMode, useCameraStore } from '../state/CameraState';
 
 /**
  * Handles player movement based on input actions.
@@ -20,10 +19,6 @@ export class PlayerSystem {
     // Camera-provided direction vectors
     private cameraForward = new THREE.Vector3(0, 0, -1);
     private cameraRight = new THREE.Vector3(1, 0, 0);
-    
-    // Player direction vectors
-    private playerForward = new THREE.Vector3(0, 0, -1);
-    private playerRight = new THREE.Vector3(1, 0, 0);
     
     // Constants for ground check
     private readonly PLAYER_HEIGHT = 1.8;
@@ -76,16 +71,14 @@ export class PlayerSystem {
     /**
      * Updates the player's rigid body based on current input.
      * @param playerBody The RAPIER.RigidBody of the player.
-     * @param playerMesh The mesh representing the player.
+     * @param _playerMesh The mesh representing the player.
      * @param delta Time since last frame (optional, for frame-rate independent force).
      */
-    public update(playerBody: RAPIER.RigidBody, playerMesh: THREE.Object3D, delta: number): void {
+    public update(playerBody: RAPIER.RigidBody, _playerMesh: THREE.Object3D, delta: number): void {
         if (!playerBody) return; // Don't run if body doesn't exist
 
         const actions = useInputStore.getState().actions;
         const currentVelocity = playerBody.linvel();
-        const cameraState = useCameraStore.getState();
-        const cameraMode = cameraState.mode;
         
         // --- Calculate Movement Direction --- 
         this.movementDirection.set(0, 0, 0);

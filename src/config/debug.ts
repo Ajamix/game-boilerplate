@@ -2,6 +2,7 @@
  * Debug configuration from environment variables.
  * These are injected by Vite during build time from the .env file.
  */
+import { DebugConfig } from '../types/Debug.types';
 
 const CONFIG = {
   // Master debug mode toggle (affects logging and potentially performance)
@@ -21,14 +22,14 @@ const isEnabled = (feature: keyof typeof CONFIG): boolean => {
 };
 
 // Combine both into the exported DEBUG_CONFIG
-export const DEBUG_CONFIG = {
+export const DEBUG_CONFIG: DebugConfig = {
   ...CONFIG,
   isEnabled
 };
 
 // Log all active debug features on startup
 const activeFeatures = Object.entries(CONFIG)
-  .filter(([key, value]) => typeof value === 'boolean' && value === true)
+  .filter(([_key, value]) => typeof value === 'boolean' && value === true)
   .map(([key]) => key);
 
 if (activeFeatures.length > 0) {

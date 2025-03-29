@@ -1,55 +1,12 @@
 import { create } from 'zustand';
-import * as THREE from 'three';
-
-export enum CameraMode {
-  FirstPerson = 'FIRST_PERSON',
-  ThirdPerson = 'THIRD_PERSON'
-}
-
-interface CameraSettings {
-  // Common settings
-  sensitivity: number;
-  fov: number;
-  
-  // Third-person specific settings
-  distance: number;
-  height: number;
-  offsetX: number;
-  
-  // First-person specific settings
-  fpHeight: number;
-  
-  // Rotation/position lerp factors
-  rotationLerpFactor: number;
-  positionLerpFactor: number;
-}
-
-export interface CameraState {
-  // Current state
-  mode: CameraMode;
-  settings: CameraSettings;
-  target: THREE.Object3D | null;
-  enabled: boolean;
-  
-  // Actions
-  setMode: (mode: CameraMode) => void;
-  setSensitivity: (sensitivity: number) => void;
-  setDistance: (distance: number) => void;
-  setHeight: (height: number) => void;
-  setFOV: (fov: number) => void;
-  setEnabled: (enabled: boolean) => void;
-  setTarget: (target: THREE.Object3D | null) => void;
-  setOffsetX: (offset: number) => void;
-  setFPHeight: (height: number) => void;
-  setRotationLerpFactor: (factor: number) => void;
-  setPositionLerpFactor: (factor: number) => void;
-}
+import { CameraState as ICameraState } from '../types/Camera.types';
+import { CameraMode } from '../enums/CameraMode';
 
 /**
  * Zustand store for managing camera state.
  * Handles settings for both first-person and third-person camera modes.
  */
-export const useCameraStore = create<CameraState>((set) => ({
+export const useCameraStore = create<ICameraState>((set) => ({
   mode: CameraMode.ThirdPerson,
   target: null,
   enabled: true,

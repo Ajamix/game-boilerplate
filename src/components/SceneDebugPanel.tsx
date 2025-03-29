@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useControls, folder, button, useStoreContext, monitor } from 'leva';
+import { useControls, folder, button, useStoreContext } from 'leva';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { GameScene } from '../scenes/GameScene'; // Adjust path if needed

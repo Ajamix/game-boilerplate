@@ -1,4 +1,5 @@
 import { InputAction, InputActionValue } from '../enums/InputAction';
+import { KeyboardKey, MouseButton } from '../enums/KeyboardKeys';
 
 /**
  * Defines the mapping between keyboard/mouse event codes and abstract InputActions.
@@ -6,24 +7,24 @@ import { InputAction, InputActionValue } from '../enums/InputAction';
  */
 export const keyActionMap: Readonly<Record<string, InputActionValue>> = Object.freeze({
     // Keyboard Movement
-    KeyW: InputAction.Forward,
-    ArrowUp: InputAction.Forward,
-    KeyS: InputAction.Backward,
-    ArrowDown: InputAction.Backward,
-    KeyA: InputAction.Left,
-    ArrowLeft: InputAction.Left,
-    KeyD: InputAction.Right,
-    ArrowRight: InputAction.Right,
+    [KeyboardKey.KeyW]: InputAction.Forward,
+    [KeyboardKey.ArrowUp]: InputAction.Forward,
+    [KeyboardKey.KeyS]: InputAction.Backward,
+    [KeyboardKey.ArrowDown]: InputAction.Backward,
+    [KeyboardKey.KeyA]: InputAction.Left,
+    [KeyboardKey.ArrowLeft]: InputAction.Left,
+    [KeyboardKey.KeyD]: InputAction.Right,
+    [KeyboardKey.ArrowRight]: InputAction.Right,
     
     // Keyboard Actions
-    Space: InputAction.Jump,
-    ShiftLeft: InputAction.Run,
-    ShiftRight: InputAction.Run,
+    [KeyboardKey.Space]: InputAction.Jump,
+    [KeyboardKey.ShiftLeft]: InputAction.Run,
+    [KeyboardKey.ShiftRight]: InputAction.Run,
     
-    // Mouse Actions (Key format: 'Mouse' + (event.button + 1))
-    Mouse1: InputAction.Action1, // Left Mouse Button
-    // Mouse2: InputAction.Action2, // Right Mouse Button (Example)
-    // Mouse3: InputAction.Action3, // Middle Mouse Button (Example)
+    // Mouse Actions
+    [MouseButton.Left]: InputAction.Action1, // Left Mouse Button
+    // [MouseButton.Right]: InputAction.Action2, // Right Mouse Button (Example)
+    // [MouseButton.Middle]: InputAction.Action3, // Middle Mouse Button (Example)
 });
 
 /**
@@ -31,10 +32,10 @@ export const keyActionMap: Readonly<Record<string, InputActionValue>> = Object.f
  * when the input system is active and pointer is locked (e.g., spacebar scroll).
  */
 export const preventDefaultKeys: ReadonlySet<string> = Object.freeze(new Set([
-    'Space', 
-    'ArrowUp', 
-    'ArrowDown', 
-    'ArrowLeft', 
-    'ArrowRight'
-    // Add other keys like 'Tab' if needed
+    KeyboardKey.Space, 
+    KeyboardKey.ArrowUp, 
+    KeyboardKey.ArrowDown, 
+    KeyboardKey.ArrowLeft, 
+    KeyboardKey.ArrowRight
+    // Add other keys like KeyboardKey.Tab if needed
 ])); 

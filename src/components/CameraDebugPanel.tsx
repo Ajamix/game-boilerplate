@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useControls, folder, button, useStoreContext } from 'leva';
-import { CameraMode, useCameraStore } from '../state/CameraState';
+import {  useCameraStore } from '../state/CameraState';
+import { CameraMode } from '../enums/CameraMode';
 
 /**
  * A React component that provides Leva debug controls 

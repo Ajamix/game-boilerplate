@@ -1,13 +1,5 @@
 import { Time } from './Time';
-
-// Use interfaces instead of type aliases
-interface UpdateCallback {
-    (delta: number, elapsed: number): void;
-}
-
-interface RenderCallback {
-    (): void;
-}
+import { UpdateCallback, RenderCallback } from '../types/Loop.types';
 
 /**
  * Manages the main game loop using requestAnimationFrame.

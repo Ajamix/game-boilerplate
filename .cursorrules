@@ -2,6 +2,9 @@
  DO NOT TAKE ANY SHORTCUTES AT WHEN IT COMES TO EVERYTHING AT ALL.
 
 ### Mental Checklist to Avoid Spaghetti
+
+ Make sure yopu split interfaces and types into their own files.
+ and same for components and enums
  Is this file < 200 lines?
 
  Does this file do one job only?

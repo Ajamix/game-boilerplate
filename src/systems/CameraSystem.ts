@@ -1,8 +1,9 @@
 import * as THREE from 'three';
-import { CameraMode, useCameraStore } from '../state/CameraState';
+import { useCameraStore } from '../state/CameraState';
 import { getMouseDelta } from '../state/InputState';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { PhysicsSystem } from './PhysicsSystem';
+import { CameraMode } from '../enums/CameraMode';
 
 /**
  * Manages camera positioning, rotation, and behavior based on the current camera mode.
@@ -20,7 +21,6 @@ export class CameraSystem {
   
   // Reusable objects to avoid garbage collection
   private cameraDirection = new THREE.Vector3();
-  private tempVec = new THREE.Vector3();
   private yawQuaternion = new THREE.Quaternion();
   private pitchQuaternion = new THREE.Quaternion();
   private upVector = new THREE.Vector3(0, 1, 0);
@@ -81,7 +81,7 @@ export class CameraSystem {
    * @param playerMesh The visual mesh of the player
    * @param delta Time since last frame
    */
-  public update(playerBody: RAPIER.RigidBody, playerMesh: THREE.Object3D, delta: number): void {
+  public update(playerBody: RAPIER.RigidBody, playerMesh: THREE.Object3D, _delta: number): void {
     const { mode, settings, enabled } = useCameraStore.getState();
     
     if (!enabled || !playerBody) return;
@@ -157,7 +157,7 @@ export class CameraSystem {
    * Updates player mesh orientation to match camera's horizontal rotation
    * depending on the current camera mode.
    */
-  private updatePlayerOrientation(playerBody: RAPIER.RigidBody, playerMesh: THREE.Object3D, mode: CameraMode): void {
+  private updatePlayerOrientation(_playerBody: RAPIER.RigidBody, playerMesh: THREE.Object3D, mode: CameraMode): void {
     // In FirstPerson and ThirdPerson modes, player faces where camera points
     // In Orbital mode, player orientation remains independent
     if (mode === CameraMode.FirstPerson || mode === CameraMode.ThirdPerson) {
@@ -165,9 +165,6 @@ export class CameraSystem {
       playerMesh.rotation.y = this.currentRotationY;
       
       // Also update the physics body to match the Y rotation
-      // Create a quaternion for Y rotation only (used for both mesh and physics)
-      const yRotation = new THREE.Quaternion().setFromAxisAngle(this.upVector, this.currentRotationY);
-      
       // Update the physics body with the Y rotation
       this.physicsSystem.updateBodyYRotation(playerMesh, this.currentRotationY);
     }

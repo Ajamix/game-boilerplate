@@ -1,5 +1,6 @@
 import { useInputStore } from '../state/InputState';
 import { keyActionMap, preventDefaultKeys } from '../config/inputMappings';
+import { MouseButton } from '../enums/KeyboardKeys';
 
 /**
  * Manages browser input events (keyboard, mouse, pointer lock)
@@ -101,18 +102,30 @@ export class InputSystem {
     }
 
     private onPointerDown(event: PointerEvent): void {
-        const actionKey = `Mouse${event.button + 1}`;
-        const action = keyActionMap[actionKey]; 
-        if (action && useInputStore.getState().isPointerLocked) { 
-             useInputStore.getState().setAction(action, true);
+        // Convert button index to MouseButton enum value
+        const mouseButton = event.button === 0 ? MouseButton.Left :
+                           event.button === 1 ? MouseButton.Middle :
+                           event.button === 2 ? MouseButton.Right : null;
+        
+        if (mouseButton) {
+            const action = keyActionMap[mouseButton]; 
+            if (action && useInputStore.getState().isPointerLocked) { 
+                useInputStore.getState().setAction(action, true);
+            }
         }
     }
     
     private onPointerUp(event: PointerEvent): void {
-        const actionKey = `Mouse${event.button + 1}`;
-        const action = keyActionMap[actionKey];
-        if (action) {
-            useInputStore.getState().setAction(action, false);
+        // Convert button index to MouseButton enum value
+        const mouseButton = event.button === 0 ? MouseButton.Left :
+                           event.button === 1 ? MouseButton.Middle :
+                           event.button === 2 ? MouseButton.Right : null;
+                           
+        if (mouseButton) {
+            const action = keyActionMap[mouseButton];
+            if (action) {
+                useInputStore.getState().setAction(action, false);
+            }
         }
     }
 

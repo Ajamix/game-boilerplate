@@ -8,9 +8,6 @@ import { CameraSystem } from '../systems/CameraSystem';
 import { useCameraStore } from '../state/CameraState';
 import { DEBUG_CONFIG } from '../config/debug';
 
-// For Debug Renderer
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-
 /**
  * Main game engine class.
  * Initializes core components like the renderer, camera, and game loop.

@@ -17,7 +17,6 @@ export class GameScene {
     private _cube!: THREE.Mesh;
     private _plane!: THREE.Mesh;
     private _cubeBody!: RAPIER.RigidBody;
-    private _planeBody!: RAPIER.RigidBody;
 
     // Array to track disposable Three.js resources
     private disposables: { dispose: () => void }[] = [];
@@ -37,7 +36,6 @@ export class GameScene {
     public get cube(): THREE.Mesh { return this._cube; }
     public get plane(): THREE.Mesh { return this._plane; }
     public get cubeBody(): RAPIER.RigidBody { return this._cubeBody; }
-    // No getter for planeBody needed typically as it's fixed
 
     // --- Setters for Light Control ---
     /**
@@ -146,7 +144,7 @@ export class GameScene {
             groundSize / 2
         ).setRestitution(0.1);
         // Use the groundBox mesh for physics association
-        this._planeBody = this.physicsSystem.addBody(groundBox, groundBodyDesc, groundColliderDesc);
+        this.physicsSystem.addBody(groundBox, groundBodyDesc, groundColliderDesc);
         this._plane = groundBox; // Assign groundBox to _plane for compatibility
     }
 
@@ -155,8 +153,8 @@ export class GameScene {
     /**
      * Update logic for the scene (non-physics related).
      */
-    public update(delta: number, elapsed: number): void {
-        // Keep this for scene-specific animations or logic later
+    public update(_delta: number, _elapsed: number): void {
+        // Currently no update needed for a static scene
     }
 
     /**
