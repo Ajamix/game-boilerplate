@@ -51,7 +51,7 @@ A modern TypeScript game boilerplate using Three.js, Rapier physics, React for U
 
 ```bash
 # Clone this repository
-git clone https://github.com/yourusername/game-boilerplate.git
+git clone https://github.com/ajamix/game-boilerplate.git
 cd game-boilerplate
 
 # Install dependencies
